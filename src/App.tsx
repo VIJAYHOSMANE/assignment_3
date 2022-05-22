@@ -2,7 +2,9 @@ import styles from "./App.module.css";
 import List from "./components/List";
 import InputWithLabel from "./components/InputWithLabel";
 import logo from "./assets/logo.png";
+import Pagination from "@mui/material/Pagination";
 import usePersistence from "./hooks/usePersistence";
+import "./App.css";
 import React, {
   useEffect,
   useMemo,
@@ -14,6 +16,7 @@ import axios from "axios";
 import { useDebounce } from "./hooks/useDebounce";
 import { StateType, StoryType, ActionType } from "./types";
 import { Link } from "react-router-dom";
+import { Box } from "@mui/material";
 
 export const title: string = "React Training";
 
@@ -35,8 +38,6 @@ export function storiesReducer(state: StateType, action: ActionType) {
   }
 }
 
-const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
-
 interface AppContextType {
   onClickDelete: (e: number) => void;
 }
@@ -44,6 +45,8 @@ interface AppContextType {
 export const AppContext = createContext<AppContextType | null>(null);
 
 function App(): JSX.Element {
+  const [page, setPage] = React.useState(1);
+  const API_ENDPOINT = `https://hn.algolia.com/api/v1/search?page=${page}&query=`;
   const [searchText, setSearchText] = usePersistence("searchTerm", "React");
   const debouncedUrl = useDebounce(API_ENDPOINT + searchText);
 
@@ -77,7 +80,7 @@ function App(): JSX.Element {
 
   useEffect(() => {
     handleFetchStories();
-  }, [handleFetchStories]);
+  }, [handleFetchStories, page]);
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     setSearchText(event.target.value);
@@ -95,6 +98,9 @@ function App(): JSX.Element {
       </h1>
     );
   }
+  const handleChangee = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
 
   return (
     <div>
@@ -112,7 +118,7 @@ function App(): JSX.Element {
           Search
         </InputWithLabel>
         <Link to="/login" state={{ id: "1234" }}>
-          <h6>Login</h6>
+          <h4>Login</h4>
         </Link>
       </nav>
       {stories.isLoading ? (
@@ -122,6 +128,27 @@ function App(): JSX.Element {
           <List listOfItems={stories.data} />
         </AppContext.Provider>
       )}
+      <Box>
+        <Pagination
+          count={15}
+          page={page}
+          onChange={handleChangee}
+          color="primary"
+          showFirstButton
+          showLastButton
+          defaultPage={1}
+          sx={{
+            marginTop: "1000px",
+            marginBottom: "20px",
+            height: "20px",
+            width: "100%",
+            position: "absolute",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#24344d",
+          }}
+        />
+      </Box>
     </div>
   );
 }
